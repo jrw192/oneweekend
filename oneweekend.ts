@@ -5,6 +5,7 @@ import { Ray } from './Ray';
 import { add, subtract, multiply, divide, dot, unitVecFrom } from './utils';
 import { Hitable, HitableList, HitRecord } from './Hitable';
 import { Sphere } from './Sphere';
+import { Camera } from './Camera';
 
 function hitSphere(center: Vec3, radius: number, ray: Ray): number {
     let oc = subtract(ray.origin(), center);
@@ -41,6 +42,7 @@ function main() {
     console.log('hi');
     let nx = 200;
     let ny = 100;
+    let ns = 100;
     fs.appendFileSync('./image.ppm', `P3\n${nx} ${ny}\n255\n`);
 
     let bottomLeft = new Vec3(-2, -1, -1);
@@ -52,15 +54,17 @@ function main() {
     list.push(new Sphere(new Vec3(0, 0, -1), 0.5));
     list.push(new Sphere(new Vec3(0, -100.5, -1), 100));
     let world: HitableList = new HitableList(list, 2);
-
+    let camera = new Camera();
     for (let j = ny - 1; j >= 0; j--) {
         for (let i = 0; i < nx; i++) {
-            let u = i / nx;
-            let v = j / ny;
-            let direction = add(add(multiply(horiz, u), bottomLeft), multiply(vert, v));
-            let ray = new Ray(origin, direction);
-            let p = ray.pointAtParameter(2);
-            let col = color(ray, world);
+            let col = new Vec3(0,0,0);
+            for (let s = 0; s < ns; s++) {
+                let u = (i+Math.random()) / nx;
+                let v = (j+Math.random()) / ny;
+                let ray = camera.getRay(u,v);
+                col.add(color(ray, world));
+            }
+            col.scale(1/ns);
             let ir = Math.floor(255.99 * col.x());
             let ig = Math.floor(255.99 * col.y());
             let ib = Math.floor(255.99 * col.z());
