@@ -115,17 +115,28 @@ function hitSphere(center, radius, ray) {
     var b = 2 * dot(oc, ray.direction());
     var c = dot(oc, oc) - (radius * radius);
     var discriminant = b * b - 4 * a * c;
-    return discriminant > 0;
+    if (discriminant < 0) {
+        // no hit
+        return -1;
+    }
+    // return hit point
+    return (-b - Math.sqrt(discriminant)) / (2 * a);
 }
 function color(r) {
     // color surface of sphere red
-    if (hitSphere(new Vec3(0, 0, -1), 0.5, r)) {
-        return new Vec3(1, 0, 0);
+    var t = hitSphere(new Vec3(0, 0, -1), 0.5, r);
+    if (t > 0) {
+        // (hit point) - (sphere center)
+        var normalDir = subtract(r.pointAtParameter(t), new Vec3(0, 0, -1));
+        var N = unitVecFrom(normalDir);
+        return multiply(new Vec3(N.x() + 1, N.y() + 1, N.z() + 1), 0.5);
     }
-    var unitDir = unitVecFrom(r.direction());
-    var t = 0.5 * (unitDir.y() + 1.0);
-    // linear interpolation
-    return add(multiply(new Vec3(1, 1, 1), 1 - t), multiply(new Vec3(.5, .7, 1), t));
+    else {
+        var unitDir = unitVecFrom(r.direction());
+        t = 0.5 * (unitDir.y() + 1.0);
+        // linear interpolation for background
+        return add(multiply(new Vec3(1, 1, 1), 1 - t), multiply(new Vec3(.5, .7, 1), t));
+    }
 }
 function main() {
     console.log('hi');
