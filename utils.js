@@ -9,6 +9,7 @@ exports.divide = divide;
 exports.dot = dot;
 exports.cross = cross;
 exports.unitVecFrom = unitVecFrom;
+exports.randomInUnitSphere = randomInUnitSphere;
 var Vec3_1 = require("./Vec3");
 function newVec3From(v1) {
     return new Vec3_1.Vec3(v1.x(), v1.y(), v1.z());
@@ -37,4 +38,12 @@ function cross(v1, v2) {
 }
 function unitVecFrom(v1) {
     return divide(v1, v1.length());
+}
+function randomInUnitSphere() {
+    var unit = new Vec3_1.Vec3(1, 1, 1);
+    var p = (new Vec3_1.Vec3(Math.random(), Math.random(), Math.random()).scale(2)).subtract(unit);
+    while (p.lengthSquared() >= 1) {
+        p = (new Vec3_1.Vec3(Math.random(), Math.random(), Math.random()).scale(2)).subtract(unit);
+    }
+    return p;
 }

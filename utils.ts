@@ -36,3 +36,12 @@ export function cross(v1: Vec3, v2: Vec3) {
 export function unitVecFrom(v1: Vec3): Vec3 {
     return divide(v1, v1.length());
 }
+
+export function randomInUnitSphere() {
+    let unit = new Vec3(1,1,1);
+    let p = (new Vec3(Math.random(), Math.random(), Math.random()).scale(2)).subtract(unit);
+    while (p.lengthSquared() >= 1) {
+        p = (new Vec3(Math.random(), Math.random(), Math.random()).scale(2)).subtract(unit);
+    }
+    return p;
+}

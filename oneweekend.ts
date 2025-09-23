@@ -1,11 +1,11 @@
 declare function require(name: string): any;
 const fs = require('fs');
-import { Vec3 } from './Vec3';
-import { Ray } from './Ray';
-import { add, subtract, multiply, divide, dot, unitVecFrom } from './utils';
-import { Hitable, HitableList, HitRecord } from './Hitable';
-import { Sphere } from './Sphere';
-import { Camera } from './Camera';
+import {Vec3} from './Vec3';
+import {Ray} from './Ray';
+import {add, subtract, multiply, divide, dot, unitVecFrom, randomInUnitSphere} from './utils';
+import {Hitable, HitableList, HitRecord} from './Hitable';
+import {Sphere} from './Sphere';
+import {Camera} from './Camera';
 
 function hitSphere(center: Vec3, radius: number, ray: Ray): number {
     let oc = subtract(ray.origin(), center);
@@ -25,10 +25,10 @@ function color(r: Ray, world: HitableList): Vec3 {
     let hitRecord: HitRecord = { t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0) };
 
     // color surface of spheres
-    if (world.hit(r, 0, Number.MAX_VALUE, hitRecord)) {
-        let N = unitVecFrom(hitRecord.normal);
-        return multiply(new Vec3(N.x() + 1, N.y() + 1, N.z() + 1), 0.5);
-
+    if (world.hit(r, 0.001, Number.MAX_VALUE, hitRecord)) {
+        let target = randomInUnitSphere().add(add(hitRecord.p, hitRecord.normal));
+        let col = color(new Ray(hitRecord.p, subtract(target, hitRecord.p)), world);
+        return col.scale(0.5);
     } else {
         let unitDir = unitVecFrom(r.direction());
         let t = 0.5 * (unitDir.y() + 1.0);
@@ -45,11 +45,6 @@ function main() {
     let ns = 100;
     fs.appendFileSync('./image.ppm', `P3\n${nx} ${ny}\n255\n`);
 
-    let bottomLeft = new Vec3(-2, -1, -1);
-    let horiz = new Vec3(4, 0, 0);
-    let vert = new Vec3(0, 2, 0);
-    let origin = new Vec3(0, 0, 0);
-
     let list: Hitable[] = [];
     list.push(new Sphere(new Vec3(0, 0, -1), 0.5));
     list.push(new Sphere(new Vec3(0, -100.5, -1), 100));
@@ -65,6 +60,7 @@ function main() {
                 col.add(color(ray, world));
             }
             col.scale(1/ns);
+            col = new Vec3(Math.sqrt(col.r()), Math.sqrt(col.g()), Math.sqrt(col.b()))
             let ir = Math.floor(255.99 * col.x());
             let ig = Math.floor(255.99 * col.y());
             let ib = Math.floor(255.99 * col.z());
