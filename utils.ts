@@ -45,3 +45,9 @@ export function randomInUnitSphere() {
     }
     return p;
 }
+
+export function reflect(v1: Vec3, normal: Vec3) {
+    let bLength = dot(v1, normal);
+    let b = multiply(normal, bLength);
+    return subtract(v1, b.scale(2));
+}

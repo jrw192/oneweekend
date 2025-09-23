@@ -10,6 +10,7 @@ exports.dot = dot;
 exports.cross = cross;
 exports.unitVecFrom = unitVecFrom;
 exports.randomInUnitSphere = randomInUnitSphere;
+exports.reflect = reflect;
 var Vec3_1 = require("./Vec3");
 function newVec3From(v1) {
     return new Vec3_1.Vec3(v1.x(), v1.y(), v1.z());
@@ -46,4 +47,9 @@ function randomInUnitSphere() {
         p = (new Vec3_1.Vec3(Math.random(), Math.random(), Math.random()).scale(2)).subtract(unit);
     }
     return p;
+}
+function reflect(v1, normal) {
+    var bLength = dot(v1, normal);
+    var b = multiply(normal, bLength);
+    return subtract(v1, b.scale(2));
 }

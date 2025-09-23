@@ -3,9 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Sphere = void 0;
 var utils_1 = require("./utils");
 var Sphere = /** @class */ (function () {
-    function Sphere(cen, r) {
+    function Sphere(cen, r, m) {
         this.center = cen;
         this.radius = r;
+        this.material = m;
     }
     Sphere.prototype.hit = function (ray, tMin, tMax, rec) {
         var oc = (0, utils_1.subtract)(ray.origin(), this.center);

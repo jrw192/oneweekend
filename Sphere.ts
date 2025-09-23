@@ -1,15 +1,18 @@
 import {HitRecord, Hitable} from './Hitable';
 import {Vec3} from './Vec3';
 import {Ray} from './Ray';
+import {Material} from './Material';
 import {divide, dot, subtract} from './utils';
 
 export class Sphere implements Hitable {
     center: Vec3;
     radius: number;
+    material: Material;
 
-    constructor(cen: Vec3, r: number) {
+    constructor(cen: Vec3, r: number, m: Material) {
         this.center = cen;
         this.radius = r;
+        this.material = m;
     }
 
     hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {

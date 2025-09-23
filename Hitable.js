@@ -8,16 +8,17 @@ var Hitable = /** @class */ (function () {
 }());
 exports.Hitable = Hitable;
 var HitableList = /** @class */ (function () {
-    function HitableList(list, n) {
+    function HitableList(list) {
         this.list = list;
-        this.listSize = n;
+        this.listSize = list.length;
     }
     HitableList.prototype.hit = function (ray, tMin, tMax, rec) {
         var hitAnything = false;
         var closest = tMax;
         for (var i = 0; i < this.listSize; i++) {
             var sphere = this.list[i];
-            if (this.list[i].hit(ray, tMin, closest, rec)) {
+            rec.material = sphere.material;
+            if (sphere.hit(ray, tMin, closest, rec)) {
                 hitAnything = true;
                 closest = rec.t;
             }

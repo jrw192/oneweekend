@@ -1,11 +1,13 @@
 import {Vec3} from './Vec3';
 import {Ray} from './Ray';
 import {Sphere} from './Sphere';
+import {Material} from './Material';
 
 export interface HitRecord {
     t: number; // distance from origin
     p: Vec3; // hit point
     normal: Vec3; // normal vector
+    material: Material;
 }
 
 export abstract class Hitable {
@@ -15,9 +17,9 @@ export abstract class Hitable {
 export class HitableList {
     list: Hitable[];
     listSize: number;
-    constructor(list: Hitable[], n: number) {
+    constructor(list: Hitable[]) {
         this.list = list;
-        this.listSize = n;
+        this.listSize = list.length;
     }
 
     hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord) {
@@ -26,7 +28,8 @@ export class HitableList {
 
         for (let i = 0; i < this.listSize; i++) {
             let sphere = this.list[i] as Sphere;
-            if (this.list[i].hit(ray, tMin, closest, rec)) {
+            rec.material = sphere.material;
+            if (sphere.hit(ray, tMin, closest, rec)) {
                 hitAnything = true;
                 closest = rec.t;
             }
