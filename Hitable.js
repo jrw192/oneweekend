@@ -17,7 +17,6 @@ var HitableList = /** @class */ (function () {
         var closest = tMax;
         for (var i = 0; i < this.listSize; i++) {
             var sphere = this.list[i];
-            rec.material = sphere.material;
             if (sphere.hit(ray, tMin, closest, rec)) {
                 hitAnything = true;
                 closest = rec.t;

@@ -21,6 +21,7 @@ var Sphere = /** @class */ (function () {
                 rec.t = t;
                 rec.p = ray.pointAtParameter(t);
                 rec.normal = (0, utils_1.divide)((0, utils_1.subtract)(rec.p, this.center), this.radius);
+                rec.material = this.material;
                 return true;
             }
         }

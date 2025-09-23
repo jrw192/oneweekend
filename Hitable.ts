@@ -28,7 +28,6 @@ export class HitableList {
 
         for (let i = 0; i < this.listSize; i++) {
             let sphere = this.list[i] as Sphere;
-            rec.material = sphere.material;
             if (sphere.hit(ray, tMin, closest, rec)) {
                 hitAnything = true;
                 closest = rec.t;

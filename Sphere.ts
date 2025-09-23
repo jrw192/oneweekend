@@ -28,6 +28,7 @@ export class Sphere implements Hitable {
                 rec.t = t;
                 rec.p = ray.pointAtParameter(t);
                 rec.normal = divide(subtract(rec.p, this.center), this.radius);
+                rec.material = this.material;
                 return true;
             }
         }
