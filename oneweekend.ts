@@ -27,14 +27,10 @@ function color(r: Ray, world: HitableList, depth: number): Vec3 {
 
     // color surface of spheres
     if (world.hit(r, 0.001, Number.MAX_VALUE, hitRecord)) {
-        let scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0));
-        let attenuation = new Vec3(0,0,0);
-        let scatter = hitRecord.material.scatter(r, hitRecord, attenuation, scattered);
-        scattered = hitRecord.material.scattered;
-        attenuation = hitRecord.material.albedo;
-        // console.log(depth, scatter);
+        let scatter = hitRecord.material.scatter(r, hitRecord);
+        let scattered = hitRecord.material.scattered;
+        let attenuation = hitRecord.material.albedo;
         if (depth < 50 && scatter) {
-            // console.log(`attenuation ${JSON.stringify(attenuation)}, scattered ${JSON.stringify(scattered)}`);
             return multiplyVecs(attenuation, color(scattered,world, depth+1));
         } else {
             return new Vec3(0,0,0);
@@ -58,8 +54,8 @@ function main() {
     let list: Hitable[] = [];
     list.push(new Sphere(new Vec3(0, 0, -1), 0.5, new Lambertian(new Vec3(.8,.3,.3))));
     list.push(new Sphere(new Vec3(0, -100.5, -1), 100, new Lambertian(new Vec3(.8,.8,0))));
-    list.push(new Sphere(new Vec3(1, 0, -1), 0.5, new Lambertian(new Vec3(.8,.6,.2))));
-    list.push(new Sphere(new Vec3(-1, 0, -1), 0.5, new Metal(new Vec3(.8,.8,.8))));
+    list.push(new Sphere(new Vec3(1, 0, -1), 0.5, new Metal(new Vec3(.8,.6,.2), .3)));
+    list.push(new Sphere(new Vec3(-1, 0, -1), 0.5, new Metal(new Vec3(.8,.8,.8), 1.0)));
 
     let world: HitableList = new HitableList(list);
     let camera = new Camera();

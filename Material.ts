@@ -6,7 +6,7 @@ import {add, dot, randomInUnitSphere, reflect, subtract, unitVecFrom} from './ut
 export abstract class Material {
     albedo: Vec3;
     scattered: Ray;
-    abstract scatter(rayIn: Ray, hitRecord: HitRecord, attenuation: Vec3, scattered: Ray): boolean;
+    abstract scatter(rayIn: Ray, hitRecord: HitRecord): boolean;
 }
 
 // the basic diffuse material
@@ -19,7 +19,7 @@ export class Lambertian implements Material {
         this.scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0))
     }
 
-    scatter(rayIn: Ray, hitRecord: HitRecord, attenuation: Vec3, scattered: Ray): boolean {
+    scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
         let target = randomInUnitSphere().add(add(hitRecord.p, hitRecord.normal));
         this.scattered = new Ray(hitRecord.p, subtract(target, hitRecord.p));
         return true;
@@ -28,16 +28,18 @@ export class Lambertian implements Material {
 
 export class Metal implements Material {
     albedo: Vec3;
+    fuzz: number;
     scattered: Ray;
 
-    constructor(a: Vec3) {
+    constructor(a: Vec3, f: number) {
         this.albedo = a;
         this.scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0))
+        this.fuzz = Math.max(1, f);
     }
 
-    scatter(rayIn: Ray, hitRecord: HitRecord, attenuation: Vec3, scattered: Ray): boolean {
+    scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
         let reflected = reflect(unitVecFrom(rayIn.direction()), hitRecord.normal);
-        this.scattered = new Ray(hitRecord.p, reflected);
+        this.scattered = new Ray(hitRecord.p, randomInUnitSphere().scale(this.fuzz).add(reflected));
         return dot(this.scattered.direction(), hitRecord.normal) > 0;
     }
 }
