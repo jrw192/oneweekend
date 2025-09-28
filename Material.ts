@@ -1,7 +1,7 @@
 import {Ray} from './Ray';
 import {Vec3} from './Vec3';
 import {HitRecord} from './Hitable';
-import {add, dot, multiply, randomInUnitSphere, reflect, refract, subtract, unitVecFrom} from './utils';
+import {add, dot, multiply, randomInUnitSphere, reflect, refract, schlick, subtract, unitVecFrom} from './utils';
 
 export abstract class Material {
     albedo: Vec3;
@@ -35,7 +35,6 @@ export class Metal implements Material {
         this.albedo = a;
         this.scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0))
         this.fuzz = Math.max(0, f);
-        this.fuzz = 0;
     }
 
     scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
@@ -50,36 +49,48 @@ export class Dieletric implements Material {
     attenuation: Vec3;
     scattered: Ray;
     refIndex: number;
-    refracted: Vec3;
-    reflected: Vec3;
 
     constructor(ri: number) {
         this.refIndex = ri;
-        this.refracted = new Vec3(0,0,0);
-        this.reflected = new Vec3(0,0,0);
         this.albedo = new Vec3(1,1,1);
+        this.attenuation = new Vec3(1,1,1);
     }
 
     scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
+        let unitDir = unitVecFrom(rayIn.direction());
         let outwardNormal: Vec3 = new Vec3(0,0,0);
-        let niNt: number = this.refIndex;
+        let niNt: number = 0;
+        let reflected = reflect(unitDir, hitRecord.normal);
+        let cosine = 0;
 
-        this.attenuation = new Vec3(1,1,1);
-        this.reflected = reflect(unitVecFrom(rayIn.direction()), hitRecord.normal);
-
-        if (dot(rayIn.direction(), hitRecord.normal) > 0) {
+        // cosine
+        let dotProduct = dot(unitDir, hitRecord.normal);
+        if (dotProduct > 0) {
             outwardNormal = multiply(hitRecord.normal, -1);
+            niNt = this.refIndex;
+            cosine = this.refIndex * dotProduct;
         } else {
             outwardNormal = hitRecord.normal;
             niNt = 1 / this.refIndex;
+            cosine = (-dotProduct);
         }
-        this.refracted = refract(rayIn.direction(), outwardNormal, niNt) ?? new Vec3(0,0,0);
-        if (this.refracted) {
-            this.scattered = new Ray(hitRecord.p, this.refracted);
+
+        let refracted = refract(unitDir, outwardNormal, niNt);
+        let reflectProb = 0;
+        if (refracted !== undefined) {
+            // this.scattered = new Ray(hitRecord.p, refracted);
+            reflectProb = schlick(cosine, this.refIndex);
         } else {
-            this.scattered = new Ray(hitRecord.p, this.reflected);
-            return false;
+            // this.scattered = new Ray(hitRecord.p, reflected);
+            reflectProb = 1;
         }
+
+        if (Math.random() < reflectProb) {
+            this.scattered = new Ray(hitRecord.p, reflected);
+        } else {
+            this.scattered = new Ray(hitRecord.p, refracted!);
+        }
+
         return true;
     }
 }

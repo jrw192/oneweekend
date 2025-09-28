@@ -47,17 +47,24 @@ export function randomInUnitSphere() {
 }
 
 export function reflect(v1: Vec3, normal: Vec3) {
-    let bLength = dot(v1, normal);
+    let uv = unitVecFrom(v1);
+    let bLength = dot(uv, normal);
     let b = multiply(normal, bLength);
     return subtract(v1, b.scale(2));
 }
 
-export function refract(v1: Vec3, n: Vec3, niNt: number) {
+export function refract(v1: Vec3, normal: Vec3, niNt: number) {
     let uv = unitVecFrom(v1);
-    let dt = dot(uv, n);
+    let dt = dot(uv, normal);
     let discriminant = 1 - Math.pow(niNt, 2)*(1- Math.pow(dt, 2));
     if (discriminant > 0) {
-        return ((uv.subtract(multiply(n, dt))).scale(niNt)).subtract(multiply(n, Math.sqrt(discriminant)));
+        return ((uv.subtract(multiply(normal, dt))).scale(niNt)).subtract(multiply(normal, Math.sqrt(discriminant)));
     }
     return undefined;
+}
+
+export function schlick(cosine: number, refIndex: number) {
+    let r0 = (1-refIndex)/(1+refIndex);
+    r0 = r0*r0;
+    return r0 + (1-r0)*Math.pow((1-cosine), 5);
 }

@@ -59,6 +59,7 @@ function main() {
     list.push(new Sphere(new Vec3(0, -100.5, -1), 100, new Lambertian(new Vec3(.8,.8,0))));
     list.push(new Sphere(new Vec3(1, 0, -1), 0.5, new Metal(new Vec3(.8,.6,.2), 0)));
     list.push(new Sphere(new Vec3(-1, 0, -1), 0.5, new Dieletric(1.5)));
+    list.push(new Sphere(new Vec3(-1, 0, -1), -.45, new Dieletric(1.5)));
 
     let world: HitableList = new HitableList(list);
     let camera = new Camera();
