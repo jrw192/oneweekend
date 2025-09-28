@@ -51,3 +51,13 @@ export function reflect(v1: Vec3, normal: Vec3) {
     let b = multiply(normal, bLength);
     return subtract(v1, b.scale(2));
 }
+
+export function refract(v1: Vec3, n: Vec3, niNt: number) {
+    let uv = unitVecFrom(v1);
+    let dt = dot(uv, n);
+    let discriminant = 1 - Math.pow(niNt, 2)*(1- Math.pow(dt, 2));
+    if (discriminant > 0) {
+        return ((uv.subtract(multiply(n, dt))).scale(niNt)).subtract(multiply(n, Math.sqrt(discriminant)));
+    }
+    return undefined;
+}
