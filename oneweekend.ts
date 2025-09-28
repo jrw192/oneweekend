@@ -55,6 +55,7 @@ function main() {
     fs.appendFileSync('./image.ppm', `P3\n${nx} ${ny}\n255\n`);
 
     let list: Hitable[] = [];
+    let R = Math.cos(Math.PI/4);
     list.push(new Sphere(new Vec3(0, 0, -1), 0.5, new Lambertian(new Vec3(.1,.2,.5))));
     list.push(new Sphere(new Vec3(0, -100.5, -1), 100, new Lambertian(new Vec3(.8,.8,0))));
     list.push(new Sphere(new Vec3(1, 0, -1), 0.5, new Metal(new Vec3(.8,.6,.2), 0)));
@@ -62,7 +63,7 @@ function main() {
     list.push(new Sphere(new Vec3(-1, 0, -1), -.45, new Dieletric(1.5)));
 
     let world: HitableList = new HitableList(list);
-    let camera = new Camera();
+    let camera = new Camera(new Vec3(-2,2,1), new Vec3(0,0,-1), new Vec3(0,1,0), 90, nx/ny);
     for (let j = ny - 1; j >= 0; j--) {
         for (let i = 0; i < nx; i++) {
             let col = new Vec3(0,0,0);
