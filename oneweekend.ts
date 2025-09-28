@@ -49,21 +49,47 @@ function color(r: Ray, world: HitableList, depth: number): Vec3 {
 
 function main() {
     console.log('hi');
-    let nx = 200;
-    let ny = 100;
+    let nx = 500;
+    let ny = 250;
     let ns = 100;
     fs.appendFileSync('./image.ppm', `P3\n${nx} ${ny}\n255\n`);
 
     let list: Hitable[] = [];
-    let R = Math.cos(Math.PI/4);
-    list.push(new Sphere(new Vec3(0, 0, -1), 0.5, new Lambertian(new Vec3(.1,.2,.5))));
-    list.push(new Sphere(new Vec3(0, -100.5, -1), 100, new Lambertian(new Vec3(.8,.8,0))));
-    list.push(new Sphere(new Vec3(1, 0, -1), 0.5, new Metal(new Vec3(.8,.6,.2), 0)));
-    list.push(new Sphere(new Vec3(-1, 0, -1), 0.5, new Dieletric(1.5)));
-    list.push(new Sphere(new Vec3(-1, 0, -1), -.45, new Dieletric(1.5)));
+    // list.push(new Sphere(new Vec3(0, 0, -1), 0.5, new Lambertian(new Vec3(.1,.2,.5))));
+    // list.push(new Sphere(new Vec3(0, -100.5, -1), 100, new Lambertian(new Vec3(.8,.8,0))));
+    // list.push(new Sphere(new Vec3(1, 0, -1), 0.5, new Metal(new Vec3(.8,.6,.2), 0)));
+    // list.push(new Sphere(new Vec3(-1, 0, -1), 0.5, new Dieletric(1.5)));
+    // list.push(new Sphere(new Vec3(-1, 0, -1), -.45, new Dieletric(1.5)));
+
+    list.push(new Sphere(new Vec3(0,-1000,0), 1000, new Lambertian(new Vec3(.5,.5,.5))));
+    for (let i = -11; i < 11; i++) {
+        for (let j = -11; j < 11; j++) {
+            let chooseMat = Math.random();
+            let center = new Vec3(i+.9*Math.random(), .2, j+.9*Math.random());
+            if ((subtract(center, new Vec3(4,.2,0))).length() > .9) {
+                if (chooseMat < .8) {
+                    list.push(new Sphere(center, 0.2, new Lambertian(new Vec3(Math.random()*Math.random(),Math.random()*Math.random(),Math.random()*Math.random()))));
+                } else if (chooseMat < .95) {
+                    list.push(new Sphere(center, 0.2, new Metal(new Vec3(.5*(1+Math.random()),.5*(1+Math.random()),.5*(1+Math.random())), .5*Math.random())));
+                } else {
+                    list.push(new Sphere(center, .2, new Dieletric(1.5)));
+                }
+            }
+        }
+    }
+    list.push(new Sphere(new Vec3(0,1,0), 1, new Dieletric(1.5)));
+    list.push(new Sphere(new Vec3(-4,1,0), 1, new Lambertian(new Vec3(.4,.2,.1))));
+    list.push(new Sphere(new Vec3(4,1,0), 1, new Metal(new Vec3(.7,.6,.5), 0)));
+
 
     let world: HitableList = new HitableList(list);
-    let camera = new Camera(new Vec3(-2,2,1), new Vec3(0,0,-1), new Vec3(0,1,0), 90, nx/ny);
+
+    let lookFrom = new Vec3(13,2,3);
+    let lookAt = new Vec3(0,0,0);
+    let focusDist = subtract(lookFrom, lookAt).length();
+    let aperture = 0.1;
+    let vFov = 20;
+    let camera = new Camera(lookFrom, lookAt, new Vec3(0,1,0), vFov, nx/ny, aperture, focusDist);
     for (let j = ny - 1; j >= 0; j--) {
         for (let i = 0; i < nx; i++) {
             let col = new Vec3(0,0,0);
