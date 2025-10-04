@@ -1,3 +1,5 @@
+import { Aabb } from './Aabb';
+import { Hitable } from './Hitable';
 import { Vec3 } from './Vec3';
 
 export function newVec3From(v1: Vec3): Vec3 {
@@ -69,4 +71,42 @@ export function schlick(cosine: number, refIndex: number) {
     let r0 = (1 - refIndex) / (1 + refIndex);
     r0 = r0 * r0;
     return r0 + (1 - r0) * Math.pow((1 - cosine), 5);
+}
+
+export function ffmin(a: number, b: number) {
+    return a < b ? a : b;
+}
+
+export function ffmax(a: number, b: number) {
+    return a > b ? a : b;
+}
+
+export function surroundingBox(box0: Aabb, box1: Aabb) {
+    let small = new Vec3(ffmin(box0.min().x(), box1.min().x()),
+        ffmin(box0.min().y(), box1.min().y()),
+        ffmin(box0.min().z(), box1.min().z()),
+    );
+    let large = new Vec3(ffmax(box0.max().x(), box1.max().x()),
+        ffmax(box0.max().y(), box1.max().y()),
+        ffmax(box0.max().z(), box1.max().z()),
+    )
+    return new Aabb(small, large);
+}
+
+export function boxCompare(a: Hitable, b: Hitable, axis: string) {
+    let boxLeft = a.boundingBox(0,0);
+    let boxRight = b.boundingBox(0,0);
+    
+    if (!boxLeft || !boxRight) {
+        throw new Error("no bounding box in constructor");
+    }
+    
+    switch (axis) {
+        case "x":
+            return boxLeft.min().x() - boxRight.min().x();
+        case "y":
+            return boxLeft.min().y() - boxRight.min().y();
+        default: //z
+            return boxLeft.min().z() - boxRight.min().z();
+    }
 }

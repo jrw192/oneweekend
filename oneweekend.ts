@@ -8,6 +8,7 @@ import {Sphere} from './Sphere';
 import {Camera} from './Camera';
 import {Material, Lambertian, Metal, Dieletric} from './Material';
 import { MovingSphere } from './MovingSphere';
+import { BvhNode } from './BvhNode';
 
 function hitSphere(center: Vec3, radius: number, ray: Ray): number {
     let oc = subtract(ray.origin(), center);
@@ -50,9 +51,9 @@ function color(r: Ray, world: HitableList, depth: number): Vec3 {
 
 function main() {
     console.log('hi');
-    let nx = 500;
-    let ny = 250;
-    let ns = 100;
+    let nx = 600;
+    let ny = 300;
+    let ns = 200;
     fs.appendFileSync('./image.ppm', `P3\n${nx} ${ny}\n255\n`);
 
     let list: Hitable[] = createRandomScene();
@@ -65,9 +66,13 @@ function main() {
     list.push(new Sphere(new Vec3(0,1,0), 1, new Dieletric(1.5)));
     list.push(new Sphere(new Vec3(-4,1,0), 1, new Lambertian(new Vec3(.4,.2,.1))));
     list.push(new Sphere(new Vec3(4,1,0), 1, new Metal(new Vec3(.7,.6,.5), 0)));
+    console.log('scene created');
 
+    // let world: HitableList = new HitableList(list);
 
-    let world: HitableList = new HitableList(list);
+    let bvhNode = new BvhNode(list, list.length, 0, 1);
+    let world: HitableList = new HitableList([bvhNode]);
+    console.log('world created');
 
     let lookFrom = new Vec3(13,2,3);
     let lookAt = new Vec3(0,0,0);
@@ -77,6 +82,7 @@ function main() {
     let t0 = 0;
     let t1 = 1;
     let camera = new Camera(lookFrom, lookAt, new Vec3(0,1,0), vFov, nx/ny, aperture, focusDist, t0, t1);
+    console.log('camera created');
     for (let j = ny - 1; j >= 0; j--) {
         for (let i = 0; i < nx; i++) {
             let col = new Vec3(0,0,0);
@@ -94,14 +100,16 @@ function main() {
             fs.appendFileSync('./image.ppm', `${ir} ${ig} ${ib}\n`);
         }
     }
+    console.log('scene drawn');
 }
 
 function createRandomScene() {
     let list: Hitable[] = [];
 
     list.push(new Sphere(new Vec3(0,-1000,0), 1000, new Lambertian(new Vec3(.5,.5,.5))));
-    for (let i = -11; i < 11; i++) {
-        for (let j = -11; j < 11; j++) {
+    let dim = 11;
+    for (let i = -dim; i < dim; i++) {
+        for (let j = -dim; j < dim; j++) {
             let chooseMat = Math.random();
             let center0 = new Vec3(i+.9*Math.random(), .2, j+.9*Math.random());
             if ((subtract(center0, new Vec3(4,.2,0))).length() > .9) {
@@ -119,4 +127,6 @@ function createRandomScene() {
     return list;
 }
 
+console.time('main');
 main();
+console.timeEnd('main');

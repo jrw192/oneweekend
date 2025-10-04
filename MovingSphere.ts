@@ -2,7 +2,8 @@ import {HitRecord, Hitable} from './Hitable';
 import {Vec3} from './Vec3';
 import {Ray} from './Ray';
 import {Material} from './Material';
-import {add, divide, dot, multiply, subtract} from './utils';
+import {add, divide, dot, ffmax, ffmin, multiply, subtract, surroundingBox} from './utils';
+import { Aabb } from './Aabb';
 
 export class MovingSphere implements Hitable {
     cen0: Vec3;
@@ -11,6 +12,7 @@ export class MovingSphere implements Hitable {
     t1: number;
     radius: number;
     material: Material;
+    bBox?: Aabb;
 
     constructor(cen0: Vec3, cen1: Vec3, t0: number, t1: number, r: number, m: Material) {
         this.cen0 = cen0;
@@ -46,5 +48,18 @@ export class MovingSphere implements Hitable {
             }
         }
         return false;
+    }
+
+    boundingBox(t0: number, t1: number): Aabb {
+        let a0 = subtract(this.cen0, new Vec3(this.radius, this.radius, this.radius));
+        let b0 = add(this.cen0, new Vec3(this.radius, this.radius, this.radius));
+        let a1 = subtract(this.cen1, new Vec3(this.radius, this.radius, this.radius));
+        let b1 = add(this.cen1, new Vec3(this.radius, this.radius, this.radius));
+
+        let box0 = new Aabb(a0, b0);
+        let box1 = new Aabb(a1, b1);
+        this.bBox = surroundingBox(box0, box1);
+
+        return this.bBox;
     }
 }

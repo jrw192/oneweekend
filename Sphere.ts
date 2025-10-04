@@ -2,12 +2,14 @@ import {HitRecord, Hitable} from './Hitable';
 import {Vec3} from './Vec3';
 import {Ray} from './Ray';
 import {Material} from './Material';
-import {divide, dot, subtract} from './utils';
+import {add, divide, dot, subtract} from './utils';
+import { Aabb } from './Aabb';
 
 export class Sphere implements Hitable {
     center: Vec3;
     radius: number;
     material: Material;
+    bBox?: Aabb;
 
     constructor(cen: Vec3, r: number, m: Material) {
         this.center = cen;
@@ -33,5 +35,15 @@ export class Sphere implements Hitable {
             }
         }
         return false;
+    }
+
+    
+
+    boundingBox(t0: number, t1: number): Aabb {
+        let a = subtract(this.center, new Vec3(this.radius, this.radius, this.radius));
+        let b = add(this.center, new Vec3(this.radius, this.radius, this.radius));
+        this.bBox = new Aabb(a, b);
+
+        return this.bBox;
     }
 }
