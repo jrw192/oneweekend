@@ -11,8 +11,15 @@ export class Camera {
     u: Vec3;
     v: Vec3;
     w: Vec3
+    time0: number;
+    time1: number;
 
-    constructor(lookFrom: Vec3, lookAt: Vec3, vUp: Vec3, vFov: number, aspect: number, aperture: number, focusDist: number) {
+    constructor(lookFrom: Vec3, lookAt: Vec3, vUp: Vec3, vFov: number,
+        aspect: number, aperture: number, focusDist: number,
+        t0: number, t1: number) {
+        this.time0 = t0;
+        this.time1 = t1;
+
         this.lensRadius = aperture / 2;
         let theta = vFov * Math.PI / 180;
         let halfHeight = Math.tan(theta / 2);
@@ -33,16 +40,17 @@ export class Camera {
         this.vert = multiply(multiply(this.v, 2 * halfHeight), focusDist);
     }
 
-    getRay(u: number, v: number) {
+    getRay(s: number, t: number) {
+        let time = this.time0 + Math.random() * (this.time1 - this.time0);
         let rd = multiply(randomInUnitSphere(), this.lensRadius);
         let offset = add(multiply(this.u, rd.x()), multiply(this.v, rd.y()));
         let direction = subtract(subtract(
             add(
-                add(this.bottomLeft, multiply(this.horiz, u)),
-                multiply(this.vert, v)),
+                add(this.bottomLeft, multiply(this.horiz, s)),
+                multiply(this.vert, t)),
             this.origin),
             offset);
 
-        return new Ray(add(this.origin, offset), direction);
+        return new Ray(add(this.origin, offset), direction, time);
     }
 }

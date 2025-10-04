@@ -21,7 +21,7 @@ export class Lambertian implements Material {
 
     scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
         let target = randomInUnitSphere().add(add(hitRecord.p, hitRecord.normal));
-        this.scattered = new Ray(hitRecord.p, subtract(target, hitRecord.p));
+        this.scattered = new Ray(hitRecord.p, subtract(target, hitRecord.p), rayIn.time());
         return true;
     }
 }
@@ -39,7 +39,7 @@ export class Metal implements Material {
 
     scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
         let reflected = reflect(unitVecFrom(rayIn.direction()), hitRecord.normal);
-        this.scattered = new Ray(hitRecord.p, randomInUnitSphere().scale(this.fuzz).add(reflected));
+        this.scattered = new Ray(hitRecord.p, randomInUnitSphere().scale(this.fuzz).add(reflected), rayIn.time());
         return dot(this.scattered.direction(), hitRecord.normal) > 0;
     }
 }
@@ -86,9 +86,9 @@ export class Dieletric implements Material {
         }
 
         if (Math.random() < reflectProb) {
-            this.scattered = new Ray(hitRecord.p, reflected);
+            this.scattered = new Ray(hitRecord.p, reflected, rayIn.time());
         } else {
-            this.scattered = new Ray(hitRecord.p, refracted!);
+            this.scattered = new Ray(hitRecord.p, refracted!, rayIn.time());
         }
 
         return true;
