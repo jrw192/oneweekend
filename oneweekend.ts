@@ -9,6 +9,7 @@ import {Camera} from './Camera';
 import {Material, Lambertian, Metal, Dieletric} from './Material';
 import { MovingSphere } from './MovingSphere';
 import { BvhNode } from './BvhNode';
+import { CheckerTexture, ConstantTexture, NoiseTexture } from './Texture';
 
 function hitSphere(center: Vec3, radius: number, ray: Ray): number {
     let oc = subtract(ray.origin(), center);
@@ -25,13 +26,13 @@ function hitSphere(center: Vec3, radius: number, ray: Ray): number {
 }
 
 function color(r: Ray, world: HitableList, depth: number): Vec3 {
-    let hitRecord: HitRecord = { t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new Vec3(0,0,0))};
+    let hitRecord: HitRecord = { t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new ConstantTexture(new Vec3(0,0,0)))};
 
     // color surface of spheres
     if (world.hit(r, 0.001, Number.MAX_VALUE, hitRecord)) {
         let scatter = hitRecord.material.scatter(r, hitRecord);
         let scattered = hitRecord.material.scattered;
-        let attenuation = hitRecord.material.albedo;
+        let attenuation = hitRecord.material.attenuation;
         // console.log('scatter', scatter);
         // console.log('scattered', scattered);
         // console.log('attenuation', attenuation);
@@ -51,9 +52,9 @@ function color(r: Ray, world: HitableList, depth: number): Vec3 {
 
 function main() {
     console.log('hi');
-    let nx = 600;
-    let ny = 300;
-    let ns = 200;
+    let nx = 300;
+    let ny = 150;
+    let ns = 100;
     fs.appendFileSync('./image.ppm', `P3\n${nx} ${ny}\n255\n`);
 
     let list: Hitable[] = createRandomScene();
@@ -64,8 +65,9 @@ function main() {
     // list.push(new Sphere(new Vec3(-1, 0, -1), -.45, new Dieletric(1.5)));
 
     list.push(new Sphere(new Vec3(0,1,0), 1, new Dieletric(1.5)));
-    list.push(new Sphere(new Vec3(-4,1,0), 1, new Lambertian(new Vec3(.4,.2,.1))));
+    list.push(new Sphere(new Vec3(-4,1,0), 1, new Lambertian(new ConstantTexture(new Vec3(.5,.5,.5)))));
     list.push(new Sphere(new Vec3(4,1,0), 1, new Metal(new Vec3(.7,.6,.5), 0)));
+    list.push(new Sphere(new Vec3(-4,1,6), 1, new Lambertian(new NoiseTexture(5))));
     console.log('scene created');
 
     // let world: HitableList = new HitableList(list);
@@ -106,7 +108,8 @@ function main() {
 function createRandomScene() {
     let list: Hitable[] = [];
 
-    list.push(new Sphere(new Vec3(0,-1000,0), 1000, new Lambertian(new Vec3(.5,.5,.5))));
+    list.push(new Sphere(new Vec3(0,-1000,0), 1000, new Lambertian(new CheckerTexture(new ConstantTexture(new Vec3(.2,.3,.1)), new ConstantTexture(new Vec3(.9,.9,.9))))));
+
     let dim = 11;
     for (let i = -dim; i < dim; i++) {
         for (let j = -dim; j < dim; j++) {
@@ -115,7 +118,7 @@ function createRandomScene() {
             if ((subtract(center0, new Vec3(4,.2,0))).length() > .9) {
                 let center1 = add(center0, new Vec3(0,Math.random()/2,0));
                 if (chooseMat < .8) {
-                    list.push(new MovingSphere(center0, center1, 0, 1, 0.2, new Lambertian(new Vec3(Math.random()*Math.random(),Math.random()*Math.random(),Math.random()*Math.random()))));
+                    list.push(new MovingSphere(center0, center1, 0, 1, 0.2, new Lambertian(new ConstantTexture(new Vec3(Math.random()*Math.random(),Math.random()*Math.random(),Math.random()*Math.random())))));
                 } else if (chooseMat < .95) {
                     list.push(new Sphere(center0, 0.2, new Metal(new Vec3(.5*(1+Math.random()),.5*(1+Math.random()),.5*(1+Math.random())), .5*Math.random())));
                 } else {

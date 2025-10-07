@@ -2,26 +2,32 @@ import {Ray} from './Ray';
 import {Vec3} from './Vec3';
 import {HitRecord} from './Hitable';
 import {add, dot, multiply, randomInUnitSphere, reflect, refract, schlick, subtract, unitVecFrom} from './utils';
+import { Texture } from './Texture';
 
 export abstract class Material {
-    albedo: Vec3;
+    albedo: Vec3|Texture;
     scattered: Ray;
+    attenuation: Vec3;
     abstract scatter(rayIn: Ray, hitRecord: HitRecord): boolean;
 }
 
 // the basic diffuse material
 export class Lambertian implements Material {
-    albedo: Vec3;
+    // albedo: Vec3;
+    albedo: Texture;
     scattered: Ray;
+    attenuation: Vec3;
 
-    constructor(a: Vec3) {
+    constructor(a: Texture) {
         this.albedo = a;
         this.scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0))
+        this.attenuation = new Vec3(0,0,0);
     }
 
     scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
         let target = randomInUnitSphere().add(add(hitRecord.p, hitRecord.normal));
         this.scattered = new Ray(hitRecord.p, subtract(target, hitRecord.p), rayIn.time());
+        this.attenuation = this.albedo.value(0,0, hitRecord.p);
         return true;
     }
 }
@@ -30,11 +36,13 @@ export class Metal implements Material {
     albedo: Vec3;
     fuzz: number;
     scattered: Ray;
+    attenuation: Vec3;
 
     constructor(a: Vec3, f: number) {
         this.albedo = a;
         this.scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0))
         this.fuzz = Math.max(0, f);
+        this.attenuation = a;
     }
 
     scatter(rayIn: Ray, hitRecord: HitRecord): boolean {

@@ -2,6 +2,7 @@ import { Aabb } from "./Aabb";
 import { Hitable, HitRecord } from "./Hitable";
 import { Lambertian } from "./Material";
 import { Ray } from "./Ray";
+import { ConstantTexture } from "./Texture";
 import { boxCompare, surroundingBox } from "./utils";
 import { Vec3 } from "./Vec3";
 
@@ -56,8 +57,8 @@ export class BvhNode implements Hitable {
 
     hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {
         if (this.box.hit(ray, tMin, tMax)) {
-            let leftRec: HitRecord = { t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new Vec3(0, 0, 0)) };
-            let rightRec: HitRecord = { t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new Vec3(0, 0, 0)) };
+            let leftRec: HitRecord = { t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new ConstantTexture(new Vec3(0, 0, 0))) };
+            let rightRec: HitRecord = { t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new ConstantTexture(new Vec3(0, 0, 0))) };
             let hitLeft = this.left.hit(ray, tMin, tMax, leftRec);
             let hitRight = this.right.hit(ray, tMin, tMax, rightRec);
 
