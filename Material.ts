@@ -2,26 +2,39 @@ import {Ray} from './Ray';
 import {Vec3} from './Vec3';
 import {HitRecord} from './Hitable';
 import {add, dot, multiply, randomInUnitSphere, reflect, refract, schlick, subtract, unitVecFrom} from './utils';
-import { Texture } from './Texture';
+import { ConstantTexture, Texture } from './Texture';
 
 export abstract class Material {
-    albedo: Vec3|Texture;
-    scattered: Ray;
-    attenuation: Vec3;
-    abstract scatter(rayIn: Ray, hitRecord: HitRecord): boolean;
-}
-
-// the basic diffuse material
-export class Lambertian implements Material {
-    // albedo: Vec3;
     albedo: Texture;
     scattered: Ray;
     attenuation: Vec3;
 
-    constructor(a: Texture) {
-        this.albedo = a;
-        this.scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0))
+    constructor() {
+        this.scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0));
         this.attenuation = new Vec3(0,0,0);
+        this.albedo = new ConstantTexture(new Vec3(0,0,0));
+    }
+
+    abstract scatter(rayIn: Ray, hitRecord: HitRecord): boolean;
+
+    emit(u: number, v: number, p: Vec3): Vec3 {
+        return new Vec3(0, 0, 0);
+    }
+
+    getScattered(): Ray {
+        return this.scattered;
+    }
+
+    getAttenuation(): Vec3 {
+        return this.attenuation;
+    }
+}
+
+// the basic diffuse material
+export class Lambertian extends Material {
+    constructor(a: Texture) {
+        super();
+        this.albedo = a;
     }
 
     scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
@@ -32,35 +45,29 @@ export class Lambertian implements Material {
     }
 }
 
-export class Metal implements Material {
-    albedo: Vec3;
-    fuzz: number;
-    scattered: Ray;
-    attenuation: Vec3;
+export class Metal extends Material {
+    private fuzz: number;
 
-    constructor(a: Vec3, f: number) {
+    constructor(a: Texture, f: number) {
+        super();
         this.albedo = a;
-        this.scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0))
         this.fuzz = Math.max(0, f);
-        this.attenuation = a;
     }
 
     scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
         let reflected = reflect(unitVecFrom(rayIn.direction()), hitRecord.normal);
         this.scattered = new Ray(hitRecord.p, randomInUnitSphere().scale(this.fuzz).add(reflected), rayIn.time());
+        this.attenuation = this.albedo.value(0,0, hitRecord.p);
         return dot(this.scattered.direction(), hitRecord.normal) > 0;
     }
 }
 
-export class Dieletric implements Material {
-    albedo: Vec3; // unused, the glass absorbs nothing
-    attenuation: Vec3;
-    scattered: Ray;
-    refIndex: number;
+export class Dieletric extends Material {
+    private refIndex: number;
 
     constructor(ri: number) {
+        super();
         this.refIndex = ri;
-        this.albedo = new Vec3(1,1,1);
         this.attenuation = new Vec3(1,1,1);
     }
 

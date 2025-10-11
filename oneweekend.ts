@@ -66,7 +66,7 @@ function main() {
 
     list.push(new Sphere(new Vec3(0,1,0), 1, new Dieletric(1.5)));
     list.push(new Sphere(new Vec3(-4,1,0), 1, new Lambertian(new ConstantTexture(new Vec3(.5,.5,.5)))));
-    list.push(new Sphere(new Vec3(4,1,0), 1, new Metal(new Vec3(.7,.6,.5), 0)));
+    list.push(new Sphere(new Vec3(4,1,0), 1, new Metal(new ConstantTexture(new Vec3(.7,.6,.5)), 0)));
     list.push(new Sphere(new Vec3(-4,1,6), 1, new Lambertian(new NoiseTexture(5))));
     console.log('scene created');
 
@@ -110,7 +110,7 @@ function createRandomScene() {
 
     list.push(new Sphere(new Vec3(0,-1000,0), 1000, new Lambertian(new CheckerTexture(new ConstantTexture(new Vec3(.2,.3,.1)), new ConstantTexture(new Vec3(.9,.9,.9))))));
 
-    let dim = 11;
+    let dim = 5;
     for (let i = -dim; i < dim; i++) {
         for (let j = -dim; j < dim; j++) {
             let chooseMat = Math.random();
@@ -120,7 +120,7 @@ function createRandomScene() {
                 if (chooseMat < .8) {
                     list.push(new MovingSphere(center0, center1, 0, 1, 0.2, new Lambertian(new ConstantTexture(new Vec3(Math.random()*Math.random(),Math.random()*Math.random(),Math.random()*Math.random())))));
                 } else if (chooseMat < .95) {
-                    list.push(new Sphere(center0, 0.2, new Metal(new Vec3(.5*(1+Math.random()),.5*(1+Math.random()),.5*(1+Math.random())), .5*Math.random())));
+                    list.push(new Sphere(center0, 0.2, new Metal(new ConstantTexture(new Vec3(.5*(1+Math.random()),.5*(1+Math.random()),.5*(1+Math.random()))), .5*Math.random())));
                 } else {
                     list.push(new Sphere(center0, .2, new Dieletric(1.5)));
                 }
