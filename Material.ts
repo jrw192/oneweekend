@@ -109,3 +109,20 @@ export class Dieletric extends Material {
         return true;
     }
 }
+
+export class DiffuseLight extends Material {
+    _emit: Texture;
+    constructor(a: Texture) {
+        super();
+        this._emit = a;
+    }
+
+    scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
+        return false;
+    }
+
+    emit(u: number, v: number, p: Vec3): Vec3 {
+        return this._emit.value(u, v, p);
+    }
+    
+}

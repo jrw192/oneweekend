@@ -57,8 +57,8 @@ export class BvhNode implements Hitable {
 
     hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {
         if (this.box.hit(ray, tMin, tMax)) {
-            let leftRec: HitRecord = { t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new ConstantTexture(new Vec3(0, 0, 0))) };
-            let rightRec: HitRecord = { t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new ConstantTexture(new Vec3(0, 0, 0))) };
+            let leftRec: HitRecord = { u: 0, v: 0, t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new ConstantTexture(new Vec3(0, 0, 0))) };
+            let rightRec: HitRecord = { u: 0, v: 0, t: 0, p: new Vec3(0, 0, 0), normal: new Vec3(0, 0, 0), material: new Lambertian(new ConstantTexture(new Vec3(0, 0, 0))) };
             let hitLeft = this.left.hit(ray, tMin, tMax, leftRec);
             let hitRight = this.right.hit(ray, tMin, tMax, rightRec);
 
@@ -68,11 +68,15 @@ export class BvhNode implements Hitable {
                     rec.p = leftRec.p;
                     rec.normal = leftRec.normal;
                     rec.material = leftRec.material;
+                    rec.u = leftRec.u;
+                    rec.v = leftRec.v;
                 } else {
                     rec.t = rightRec.t;
                     rec.p = rightRec.p;
                     rec.normal = rightRec.normal;
                     rec.material = rightRec.material;
+                    rec.u = rightRec.u;
+                    rec.v = rightRec.v;
                 }
                 return true;
             } else if (hitLeft) {
@@ -80,12 +84,16 @@ export class BvhNode implements Hitable {
                 rec.p = leftRec.p;
                 rec.normal = leftRec.normal;
                 rec.material = leftRec.material;
+                rec.u = leftRec.u;
+                    rec.v = leftRec.v;
                 return true;
             } else if (hitRight) {
                 rec.t = rightRec.t;
                 rec.p = rightRec.p;
                 rec.normal = rightRec.normal;
                 rec.material = rightRec.material;
+                rec.u = rightRec.u;
+                rec.v = rightRec.v;
                 return true;
             } else {
                 return false;
