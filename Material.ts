@@ -1,7 +1,7 @@
-import {Ray} from './Ray';
-import {Vec3} from './Vec3';
-import {HitRecord} from './Hitable';
-import {add, dot, multiply, randomInUnitSphere, reflect, refract, schlick, subtract, unitVecFrom} from './utils';
+import { Ray } from './Ray';
+import { Vec3 } from './Vec3';
+import { HitRecord } from './Hitable';
+import { add, dot, multiply, randomInUnitSphere, reflect, refract, schlick, subtract, unitVecFrom } from './utils';
 import { ConstantTexture, Texture } from './Texture';
 
 export abstract class Material {
@@ -10,9 +10,9 @@ export abstract class Material {
     attenuation: Vec3;
 
     constructor() {
-        this.scattered = new Ray(new Vec3(0,0,0), new Vec3(0,0,0));
-        this.attenuation = new Vec3(0,0,0);
-        this.albedo = new ConstantTexture(new Vec3(0,0,0));
+        this.scattered = new Ray(new Vec3(0, 0, 0), new Vec3(0, 0, 0));
+        this.attenuation = new Vec3(0, 0, 0);
+        this.albedo = new ConstantTexture(new Vec3(0, 0, 0));
     }
 
     abstract scatter(rayIn: Ray, hitRecord: HitRecord): boolean;
@@ -68,12 +68,12 @@ export class Dieletric extends Material {
     constructor(ri: number) {
         super();
         this.refIndex = ri;
-        this.attenuation = new Vec3(1,1,1);
+        this.attenuation = new Vec3(1, 1, 1);
     }
 
     scatter(rayIn: Ray, hitRecord: HitRecord): boolean {
         let unitDir = unitVecFrom(rayIn.direction());
-        let outwardNormal: Vec3 = new Vec3(0,0,0);
+        let outwardNormal: Vec3 = new Vec3(0, 0, 0);
         let niNt: number = 0;
         let reflected = reflect(unitDir, hitRecord.normal);
         let cosine = 0;
@@ -124,5 +124,5 @@ export class DiffuseLight extends Material {
     emit(u: number, v: number, p: Vec3): Vec3 {
         return this._emit.value(u, v, p);
     }
-    
+
 }

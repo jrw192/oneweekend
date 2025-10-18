@@ -12,20 +12,21 @@ export class BvhNode implements Hitable {
     box: Aabb;
 
     constructor(list: Hitable[], n: number, t0: number, t1: number) {
-        let axis = Math.floor(3*Math.random());
-        let comparator = 'x';
-        switch (axis) {
-            case 0:
-                comparator = 'x';
-                break;
-            case 1:
-                comparator = 'y';
-                break;
-            default: // 2
-                comparator = 'z';
-                break;
-        }
-        list = list.sort((b1,b2)=>boxCompare(b1, b2, comparator));
+        // let axis = Math.floor(3*Math.random());
+        // let axis = 0;
+        // let comparator = 'x';
+        // switch (axis) {
+        //     case 0:
+        //         comparator = 'x';
+        //         break;
+        //     case 1:
+        //         comparator = 'y';
+        //         break;
+        //     default: // 2
+        //         comparator = 'z';
+        //         break;
+        // }
+        list = list.sort((b1,b2)=>boxCompare(b1, b2, 'x'));
 
         if (n == 1) {
             this.left = this.right = list[0];

@@ -3,7 +3,7 @@ const fs = require('fs');
 import {Vec3} from './Vec3';
 import {Ray} from './Ray';
 import {add, subtract, multiply, divide, multiplyVecs, dot, unitVecFrom, randomInUnitSphere} from './utils';
-import {Hitable, HitableList, HitRecord, Sphere, XyRect, XzRect, YzRect} from './Hitable';
+import {Box, FlipNormals, Hitable, HitableList, HitRecord, RotateY, Sphere, Translate, XyRect, XzRect, YzRect} from './Hitable';
 import {Camera} from './Camera';
 import {Material, Lambertian, Metal, Dieletric, DiffuseLight} from './Material';
 import { MovingSphere } from './MovingSphere';
@@ -28,11 +28,11 @@ function color(r: Ray, world: HitableList, depth: number): Vec3 {
         let unitDir = unitVecFrom(r.direction());
         let t = 0.5 * (unitDir.y() + 1.0);
         // linear interpolation for background
-        return add(multiply(new Vec3(1, 1, 1), 1 - t),
-            multiply(new Vec3(.5, .7, 1), t));
+        // return add(multiply(new Vec3(1, 1, 1), 1 - t),
+        //     multiply(new Vec3(.5, .7, 1), t));
 
         // black background
-        // return new Vec3(0,0,0);
+        return new Vec3(0,0,0);
     }
 }
 
@@ -76,7 +76,7 @@ function createLightScene() {
     list.push(new Sphere(new Vec3(0,-1000,0), 1000, new Lambertian(new ConstantTexture(new Vec3(.5,.5,.5)))));
     list.push(new Sphere(new Vec3(0,2,0), 2, new Lambertian(new ConstantTexture(new Vec3(.5,.5,.5)))));
     list.push(new Sphere(new Vec3(0,7,0), 2, new DiffuseLight(new ConstantTexture(new Vec3(4,4,4)))));
-    list.push(new XyRect(3,5,1,3,-2, new DiffuseLight(new ConstantTexture(new Vec3(4,4,4)))));
+    // list.push(new XyRect(3,5,1,3,-2, new DiffuseLight(new ConstantTexture(new Vec3(4,4,4)))));
     return list;
 }
 
@@ -85,34 +85,39 @@ function createCornellBox() {
     let white = new Lambertian(new ConstantTexture(new Vec3(.75,.75,.75)));
     let green = new Lambertian(new ConstantTexture(new Vec3(.05,.65,.05)));
     let light = new DiffuseLight(new ConstantTexture(new Vec3(15,15,15)));
-    let red1 = new Lambertian(new ConstantTexture(new Vec3(.65,.05,.05)));
 
     let list: Hitable[] = [];
     
-    list.push(new YzRect(0,555,0,555,555,green));
-    list.push(new YzRect(0,555,0,555,0,red));
-    list.push(new XzRect(213,343,227,332,554,light));
     list.push(new XzRect(0,555,0,555,0,white));
-    list.push(new XzRect(0,555,0,555,555,red1));
-    list.push(new XyRect(0,555,0,555,555,white));
+    list.push(new FlipNormals(new XyRect(0,555,0,555,555,white)));
+    list.push(new XzRect(213,343,227,332,554,light));
+    list.push(new FlipNormals(new YzRect(0,555,0,555,555,green)));
+    list.push(new YzRect(0,555,0,555,0,red));
+    list.push(new FlipNormals(new XzRect(0,555,0,555,555,white)));
+    // list.push(new Box(new Vec3(130,0,65), new Vec3(295,165,230), white));
+    // list.push(new Box(new Vec3(265,0,295), new Vec3(430,330,460), white));
+    let box1 = new Box(new Vec3(0,0,0), new Vec3(165,165,165), white);
+    let box2 = new Box(new Vec3(0,0,0), new Vec3(165,330,165), white);
+    list.push(new Translate(new RotateY(box1, 18), new Vec3(130,0,65)));
+    list.push(new Translate(new RotateY(box2, -15), new Vec3(265,0,295)));
 
     return list;
 }
 
 function main() {
     console.log('hi');
-    let nx = 200;
-    let ny = 100;
-    let ns = 100;
+    let nx = 700;
+    let ny = 350;
+    let ns = 250;
     fs.appendFileSync('./image.ppm', `P3\n${nx} ${ny}\n255\n`);
 
     let list: Hitable[] = createCornellBox();
     console.log('scene created');
 
-    // let world: HitableList = new HitableList(list);
+    let world: HitableList = new HitableList(list);
 
-    let bvhNode = new BvhNode(list, list.length, 0, 1);
-    let world: HitableList = new HitableList([bvhNode]);
+    // let bvhNode = new BvhNode(list, list.length, 0, 1);
+    // let world: HitableList = new HitableList([bvhNode]);
     console.log('world created');
 
     let lookFrom = new Vec3(278,278,-800);

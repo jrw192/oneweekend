@@ -18,6 +18,10 @@ export class Vec3 {
         return new Vec3(this.e[0], this.e[1], this.e[2]);
     }
 
+    set(i: number, value: number) {
+        this.e[i] = value;
+    }
+
     getInverse(): Vec3 {
         return new Vec3(-this.e[0], -this.e[1], -this.e[2]);
     }

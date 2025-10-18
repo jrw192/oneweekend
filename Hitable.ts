@@ -2,7 +2,7 @@ import {Vec3} from './Vec3';
 import {Ray} from './Ray';
 import {Material} from './Material';
 import { Aabb } from './Aabb';
-import { add, divide, dot, subtract, surroundingBox } from './utils';
+import { add, divide, dot, multiply, multiplyVecs, subtract, surroundingBox } from './utils';
 
 export interface HitRecord {
     u: number; // horizontal 
@@ -272,5 +272,151 @@ export class XzRect extends Hitable {
         this.bBox = new Aabb(a, b);
 
         return this.bBox;
+    }
+}
+
+export class FlipNormals extends Hitable {
+    ptr: Hitable;
+    constructor(p: Hitable) {
+        super();
+        this.ptr = p;
+    }
+
+    hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {
+        if (this.ptr.hit(ray, tMin, tMax, rec)) {
+            rec.normal = multiply(rec.normal, -1);
+            return true;
+        }
+        return false;
+    }
+
+    boundingBox(t0: number, t1: number): Aabb {
+        return this.ptr.boundingBox(t0, t1);
+    }
+}
+
+export class Box extends Hitable {
+    boxList: HitableList;
+    pMin: Vec3;
+    pMax: Vec3;
+    constructor(p0: Vec3, p1: Vec3, mat: Material) {
+        super();
+
+        this.pMin = p0;
+        this.pMax = p1;
+        let faces = [
+            new XyRect(p0.x(), p1.x(), p0.y(), p1.y(), p0.z(), mat),
+            new XyRect(p0.x(), p1.x(), p0.y(), p1.y(), p1.z(), mat),
+            new YzRect(p0.y(), p1.y(), p0.z(), p1.z(), p0.x(), mat),
+            new YzRect(p0.y(), p1.y(), p0.z(), p1.z(), p1.x(), mat),
+            new XzRect(p0.x(), p1.x(), p0.z(), p1.z(), p0.y(), mat),
+            new XzRect(p0.x(), p1.x(), p0.z(), p1.z(), p1.y(), mat),
+        ];
+        this.boxList = new HitableList(faces);
+
+    }
+
+    hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {
+        return this.boxList.hit(ray, tMin, tMax, rec);
+    }
+
+    boundingBox(t0: number, t1: number): Aabb {
+        return this.boxList.boundingBox(t0,t1) as Aabb;
+    }
+}
+
+export class Translate extends Hitable {
+    hitable: Hitable;
+    offset: Vec3;
+
+    constructor(hitable: Hitable, offset: Vec3) {
+        super();
+        this.hitable = hitable;
+        this.offset = offset;
+    }
+
+    hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {
+        let translatedRay = new Ray(subtract(ray.origin(), this.offset), ray.direction(), ray.time());
+        if (this.hitable.hit(translatedRay, tMin, tMax, rec)) {
+            rec.p = add(rec.p, this.offset);
+            return true;
+        }
+        return false;
+    }
+
+    boundingBox(t0: number, t1: number): Aabb {
+        let box = this.hitable.boundingBox(t0,t1);
+        return new Aabb(add(box.min(), this.offset), add(box.max(), this.offset));
+    }
+}
+
+export class RotateY extends Hitable {
+    hitable: Hitable;
+    sinTheta: number;
+    cosTheta: number;
+
+    constructor(hitable: Hitable, angle: number) {
+        super();
+        this.hitable = hitable;
+
+        let theta = (Math.PI / 180) * angle;
+        this.sinTheta = Math.sin(theta);
+        this.cosTheta = Math.cos(theta);
+        let bBox = this.hitable.boundingBox(0,1);
+    }
+
+    hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {
+        let origin = ray.origin();
+        let dir = ray.direction();
+
+        origin.set(0, this.cosTheta*origin.x() + this.sinTheta*origin.z());
+        origin.set(2, -this.sinTheta*origin.x() + this.cosTheta*origin.z());
+        dir.set(0, this.cosTheta*dir.x() + this.sinTheta*dir.z());
+        dir.set(2, -this.sinTheta*dir.x() + this.cosTheta*dir.z());
+
+        let rotatedRay = new Ray(origin, dir, ray.time());
+
+        if (this.hitable.hit(rotatedRay, tMin, tMax, rec)) {
+            let p = rec.p;
+            let n = rec.normal;
+            p.set(0, this.cosTheta*p.x() + this.sinTheta*p.z());
+            p.set(2, -this.sinTheta*p.x() + this.cosTheta*p.z());
+            n.set(0, this.cosTheta*n.x() + this.sinTheta*n.z());
+            n.set(2, -this.sinTheta*n.x() + this.cosTheta*n.z());
+
+            rec.p = p;
+            rec.normal = n;
+
+            return true;
+        }
+        return false;
+    }
+
+    boundingBox(t0: number, t1: number): Aabb {
+        let box = this.hitable.boundingBox(t0,t1);
+        let max = new Vec3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
+        let min = new Vec3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+
+        for (let i = 0; i < 2; i++) {
+            for (let j = 0; j < 2; j++) {
+                for (let k = 0; k < 2; k++) {
+                    let x = i * box.max().x() + (1-i) * box.min().x();
+                    let y = j * box.max().y() + (1-j) * box.min().y();
+                    let z = k * box.max().z() + (1-k) * box.min().z();
+                    let newX = this.cosTheta*x + this.sinTheta*z;
+                    let newZ = -this.sinTheta*x + this.cosTheta*z;
+                    let newCoord = new Vec3(newX, y, newZ);
+                    max.set(0, Math.max(max.x(), newCoord.x()));
+                    min.set(0, Math.min(min.x(), newCoord.x()));
+                    max.set(1, Math.max(max.y(), newCoord.y()));
+                    min.set(1, Math.min(min.y(), newCoord.y()));
+                    max.set(2, Math.max(max.z(), newCoord.z()));
+                    min.set(2, Math.min(min.z(), newCoord.z()));
+
+                }
+            }
+        }
+
+        return new Aabb(max, min);
     }
 }
