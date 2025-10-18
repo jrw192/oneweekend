@@ -84,10 +84,20 @@ export class Sphere extends Hitable {
         let discriminant = b * b - 4 * a * c;
         if (discriminant > 0) {
             // hit
-            let t = (-b - Math.sqrt(discriminant)) / (2 * a);
-            if (t > tMin && t < tMax) {
-                rec.t = t;
-                rec.p = ray.pointAtParameter(t);
+            let root = Math.sqrt(discriminant)
+            let t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
+            let t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
+            if (t1 > tMin && t1 < tMax) {
+                rec.t = t1;
+                rec.p = ray.pointAtParameter(t1);
+                rec.normal = divide(subtract(rec.p, this.center), this.radius);
+                rec.material = this.material;
+                // rec.u = Math.atan2(-rec.normal.z(), rec.normal.x()) + Math.PI;
+                // rec.v = Math.acos(-rec.normal.y()) / Math.PI;
+                return true;
+            } else if (t2 > tMin && t2 < tMax) {
+                rec.t = t2;
+                rec.p = ray.pointAtParameter(t2);
                 rec.normal = divide(subtract(rec.p, this.center), this.radius);
                 rec.material = this.material;
                 // rec.u = Math.atan2(-rec.normal.z(), rec.normal.x()) + Math.PI;
@@ -130,6 +140,10 @@ export class XyRect extends Hitable {
     hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {
         // t = (k-az)/bz
         let t = (this.k - ray.origin().z()) / ray.direction().z();
+        if (t < tMin || t > tMax) {
+            return false;
+        }
+
         // x = ax + t*bx
         let x = ray.origin().x() + t*ray.direction().x();
         // y = ay + t*by
@@ -151,6 +165,110 @@ export class XyRect extends Hitable {
     boundingBox(t0: number, t1: number): Aabb {
         let a = new Vec3(this.x0, this.y0, this.k-.0001);
         let b = new Vec3(this.x1, this.y1, this.k+.0001);
+        this.bBox = new Aabb(a, b);
+
+        return this.bBox;
+    }
+}
+
+export class YzRect extends Hitable {
+    y0: number;
+    y1: number;
+    z0: number;
+    z1: number;
+    k: number;
+    material: Material;
+
+    constructor(y0: number, y1: number, z0: number, z1: number, k: number, mat: Material) {
+        super();
+        this.y0 = y0;
+        this.y1 = y1;
+        this.z0 = z0;
+        this.z1 = z1;
+        this.k = k;
+        this.material = mat;
+    }
+
+    hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {
+        // t = (k-az)/bz
+        let t = (this.k - ray.origin().x()) / ray.direction().x();
+        if (t < tMin || t > tMax) {
+            return false;
+        }
+
+        // y = ay + t*by
+        let y = ray.origin().y() + t*ray.direction().y();
+        // z = az + t*bz
+        let z = ray.origin().z() + t*ray.direction().z();
+        if (this.y0 > y || this.y1 < y || this.z0 > z || this.z1 < z) {
+            // not hit
+            return false;
+        }
+        rec.material = this.material;
+        rec.normal = new Vec3(1,0,0);
+        rec.p = ray.pointAtParameter(t);
+        rec.t = t;
+        rec.u = (y-this.y0)/(this.y1-this.y0);
+        rec.v = (z-this.z0)/(this.z1-this.z0);
+        
+        return true;
+    }
+
+    boundingBox(t0: number, t1: number): Aabb {
+        let a = new Vec3(this.y0, this.z0, this.k-.0001);
+        let b = new Vec3(this.y1, this.z1, this.k+.0001);
+        this.bBox = new Aabb(a, b);
+
+        return this.bBox;
+    }
+}
+
+export class XzRect extends Hitable {
+    x0: number;
+    x1: number;
+    z0: number;
+    z1: number;
+    k: number;
+    material: Material;
+
+    constructor(x0: number, x1: number, z0: number, z1: number, k: number, mat: Material) {
+        super();
+        this.x0 = x0;
+        this.x1 = x1;
+        this.z0 = z0;
+        this.z1 = z1;
+        this.k = k;
+        this.material = mat;
+    }
+
+    hit(ray: Ray, tMin: number, tMax: number, rec: HitRecord): boolean {
+        // t = (k-az)/bz
+        let t = (this.k - ray.origin().y()) / ray.direction().y();
+        if (t < tMin || t > tMax) {
+            return false;
+        }
+
+        // y = ay + t*by
+        let x = ray.origin().x() + t*ray.direction().x();
+        // z = az + t*bz
+        let z = ray.origin().z() + t*ray.direction().z();
+        if (this.x0 > x || this.x1 < x || this.z0 > z || this.z1 < z) {
+            // not hit
+            return false;
+        }
+        rec.material = this.material;
+        rec.normal = new Vec3(0,1,0);
+        rec.p = ray.pointAtParameter(t);
+        rec.t = t;
+        rec.u = (x-this.x0)/(this.x1-this.x0);
+        rec.v = (z-this.z0)/(this.z1-this.z0);
+        
+        return true;
+    }
+
+    boundingBox(t0: number, t1: number): Aabb {
+        let a = new Vec3(this.x0, this.z0, this.k-.0001);
+        let b = new Vec3(this.x1, this.z1, this.k+.0001);
         this.bBox = new Aabb(a, b);
 
         return this.bBox;
